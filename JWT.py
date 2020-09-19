@@ -7,18 +7,33 @@ from hashlib import sha256
 
 class TokenGenerator:
     def __init__(self, **kwargs):
+        """
+        :params kwargs: Input set of predefined claims which are not mandatory but recommended, 
+        to provide a set of useful, interoperable claims. Some of them are: iss (issuer), exp 
+        (expiration time), sub (subject), aud (audience), and others. For more you can explore
+        RFC 7519 Standard: https://tools.ietf.org/html/rfc7519
+        """
         result = self._generate(kwargs)
         self._JWT = result.get("JWT")
         self._salt = result.get("salt")
         self._signature = result.get("sign")
     
     def token(self):
+        """
+        :return JWT: return a base64 encrypt token
+        """
         return self._JWT
     
     def key(self):
+        """
+        :return salt: return a key use to encrypt message
+        """
         return self._salt
 
     def sign(self):
+        """
+        :return signature: return only the last part of the token
+        """
         return self._signature
 
     def _header_generate(self):
