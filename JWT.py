@@ -6,32 +6,45 @@ import secrets
 from hashlib import sha256
 
 class TokenGenerator:
-    def __init__(self):
-        pass
+    def __init__(self, **kwargs):
+        result = self._generate(kwargs)
+        self._JWT = result.get("JWT")
+        self._salt = result.get("salt")
+        self._signature = result.get("sign")
+    
+    def token(self):
+        return self._JWT
+    
+    def key(self):
+        return self._salt
 
-    def header_generate(self):
+    def sign(self):
+        return self._signature
+
+    def _header_generate(self):
         header = """{"alg": "HS256", "typ": "jwt"}"""
         return self._safe_base64_url_encode(header)
 
-    def payload_generate(self, username: str, permission: str):
+    def _payload_generate(self, payload: dict):
+        if not isinstance(payload, dict):
+            raise TypeError("Expected dict but got %s" % type(payload))
         # Example methods
-        exp = round(time.time()) + 50
-        payload = """{"iss": "Avimitin Studio", "exp": "%d", "user": "%s", "admin": "%s"}""" % (exp, username, permission)
-        return self._safe_base64_url_encode(payload)
+        payload_str = str(payload)
+        return self._safe_base64_url_encode(payload_str)
 
     @staticmethod
-    def encrypt(key, msg):
+    def _encrypt(key, msg):
         sign = hmac.new(key, msg, sha256).digest()
         return sign
 
-    def generate(self, username, permission):
+    def _generate(self, payload: dict):
         key = self._secret_key_generate(16)
-        print("加密密钥： " + key.decode("utf-8"))
-        message = self.header_generate() + b"." + self.payload_generate(username, permission)
-        signature = self.encrypt(key, message)
+        message = self._header_generate() + b"." + self._payload_generate(payload)
+        signature = self._encrypt(key, message)
         signature_b64 = self._safe_base64_url_encode(signature)
         part = [message, signature_b64]
-        return b".".join(part).decode("utf-8")
+        JWT = b".".join(part).decode("utf-8")
+        return {"JWT":JWT, "salt":key.decode("utf-8"), "sign": signature_b64.decode("utf-8")}
 
     @staticmethod
     def _secret_key_generate(len: int):
@@ -57,5 +70,7 @@ class TokenGenerator:
 
 
 if __name__ == "__main__":
-    u = TokenGenerator()
-    print(u.generate("avimitin", "True"))
+    u = TokenGenerator(name="avimitin", iss="avimitin studio")
+    print(u.token())
+    print(u.key())
+    print(u.sign())
