@@ -6,13 +6,15 @@ import secrets
 from hashlib import sha256
 
 class TokenGenerator:
-    def __init__(self, **kwargs):
+    def __init__(self, key:str=None, **kwargs):
         """
         :params kwargs: Input set of predefined claims which are not mandatory but recommended, 
         to provide a set of useful, interoperable claims. Some of them are: iss (issuer), exp 
         (expiration time), sub (subject), aud (audience), and others. For more you can explore
         RFC 7519 Standard: https://tools.ietf.org/html/rfc7519
         """
+        self.encrypt_key = key
+
         result = self._generate(kwargs)
         self._JWT = result.get("JWT")
         self._salt = result.get("salt")
@@ -61,8 +63,10 @@ class TokenGenerator:
         JWT = b".".join(part).decode("utf-8")
         return {"JWT":JWT, "salt":key.decode("utf-8"), "sign": signature_b64.decode("utf-8")}
 
-    @staticmethod
-    def _secret_key_generate(len: int):
+    def _secret_key_generate(self, len: int):
+        if self.encrypt_key:
+            return self.encrypt_key.encode("utf-8")
+
         current_time = round(time.time())
         combine_text = string.ascii_letters + str(current_time)
         salt = ""
