@@ -10,6 +10,8 @@ Use this modules to generate a Token following [JSON Web Token](https://jwt.io/)
 from JWT import TokenGenerator
 # follow the standard of rfc7519
 g = TokenGenerator(name="avimitin", iss="avimitin Studio", exp=time.time()+60)
+# if you want to customize encrypt key
+t = TokenGenerator(key="abc123", xxx="xxx")
 # return JWT token
 g.token()
 # return encrypt key
